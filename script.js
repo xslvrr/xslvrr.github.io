@@ -1181,9 +1181,10 @@ window.addEventListener('resize', () => {
 
 // Animation handling for homepage elements
 document.addEventListener('DOMContentLoaded', function() {
-  // Make sure all animated elements have their animations properly triggered
+  // Remove old code that's no longer needed
   const animateElements = document.querySelectorAll('.animate-subtitle, .animate-button');
   
+  // Make sure all animated elements have their animations properly triggered
   setTimeout(() => {
     animateElements.forEach(el => {
       el.style.opacity = "";

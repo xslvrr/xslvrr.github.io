@@ -1111,11 +1111,18 @@ function setupKeyboardShortcuts() {
       }
     }
     
-    // Toggle notifications with CMD/Ctrl+N - Temporarily disabled as the notification system is being rebuilt
+    // Toggle notifications with CMD/Ctrl+N
     if ((e.metaKey || e.ctrlKey) && e.key === 'n' && 
         !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
       e.preventDefault();
-      alert('Notification system is being rebuilt from scratch for better performance.');
+      const notificationsModal = document.getElementById('notifications-modal');
+      const notificationsBtn = document.getElementById('notifications-btn');
+      
+      if (notificationsModal.classList.contains('active')) {
+        closeNotificationsModal();
+      } else if (notificationsBtn) {
+        notificationsBtn.click();
+      }
     }
     
     // Escape key to close modals
@@ -1126,13 +1133,82 @@ function setupKeyboardShortcuts() {
 }
 
 /**
- * Setup notifications modal functionality (PLACEHOLDER)
- * Complete notification system has been removed and will be reimplemented from scratch
- * @see notification_module.js for the new implementation
+ * Setup notifications modal functionality
  */
 function setupNotificationsModal() {
-  console.log('Notification system moved to notification_module.js');
-  // The initialization is now handled by notification_module.js
+  const notificationsModal = document.getElementById('notifications-modal');
+  const notificationsBtn = document.getElementById('notifications-btn');
+  const closeBtn = document.querySelector('.notifications-sidebar-footer .sidebar-action-btn:last-child');
+  
+  // Exit if elements don't exist
+  if (!notificationsModal || !notificationsBtn) return;
+  
+  // Setup notification button click
+  notificationsBtn.addEventListener('click', function() {
+    // Close other modals
+    closeAllModals();
+    
+    // Show the notifications modal
+    notificationsModal.classList.add('active');
+    
+    // Focus the search input if it exists
+    const searchInput = document.querySelector('.notifications-list-header .list-search input');
+    if (searchInput) {
+      setTimeout(() => {
+        searchInput.focus();
+      }, 100);
+    }
+    
+    // Update selection state on first open
+    updateNotificationSelection();
+    
+    // Setup notification sidebar 
+    setupNotificationsSidebar();
+    
+    // Initial update of unread counts
+    updateUnreadCounts();
+    
+    // Setup notification search
+    setupNotificationSearch();
+  });
+  
+  // Close button
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      closeNotificationsModal();
+    });
+  }
+  
+  // Close modal when clicking outside
+  notificationsModal.addEventListener('click', (e) => {
+    if (e.target === notificationsModal) {
+      closeNotificationsModal();
+    }
+  });
+  
+  // Setup category selection
+  const categoryItems = document.querySelectorAll('.category-item');
+  categoryItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Update active state
+      categoryItems.forEach(cat => cat.classList.remove('active'));
+      item.classList.add('active');
+      
+      // Here we would filter notifications based on the category
+      // For demo purposes, we're just logging
+      console.log(`Selected category: ${item.dataset.category}`);
+      
+      // Show empty state or filter notifications (in a real app)
+      // For demo we'll just leave as is
+      filterNotificationsByCategory(item.dataset.category);
+    });
+  });
+  
+  // Setup notification item selection
+  setupNotificationItemSelection();
+  
+  // Setup notification actions
+  setupNotificationActions();
 }
 
 /**
@@ -1258,7 +1334,7 @@ function searchNotifications(searchTerm) {
   // Show empty state if no notifications visible
   if (visibleCount === 0) {
     showEmptySearchState(searchTerm);
-    }
+  }
   
   // Update selected notification if the currently selected one is hidden
   const selectedNotification = document.querySelector('.notification-item.selected');
@@ -1314,25 +1390,6 @@ function showEmptySearchState(searchTerm) {
   
   if (listContent) {
     listContent.appendChild(emptyState);
-  }
-  
-  // Show empty detail panel
-  showEmptyDetailPanel();
-}
-
-/**
- * Show empty detail panel
- */
-function showEmptyDetailPanel() {
-  const noNotificationSelected = document.querySelector('.no-notification-selected');
-  const notificationDetail = document.querySelector('.notification-detail');
-  
-  if (noNotificationSelected) {
-    noNotificationSelected.style.display = 'flex';
-  }
-  
-  if (notificationDetail) {
-    notificationDetail.style.display = 'none';
   }
 }
 
@@ -1722,13 +1779,13 @@ function markNotificationAsRead(notification) {
   
   // Remove unread class
   notification.classList.remove('unread');
-        
+  
   // Remove unread indicator
   const unreadIndicator = notification.querySelector('.unread-indicator');
-        if (unreadIndicator) {
-          unreadIndicator.remove();
-        }
-        
+  if (unreadIndicator) {
+    unreadIndicator.remove();
+  }
+  
   // Update action button
   updateNotificationItemButtons(notification, false);
   
@@ -1742,7 +1799,7 @@ function markNotificationAsRead(notification) {
 function updateUnreadCounts() {
   // Count unread notifications
   const allUnread = document.querySelectorAll('.notification-item.unread');
-      
+  
   // Update inbox count
   const inboxCount = document.querySelector('.category-item[data-category="inbox"] .unread-count');
   if (inboxCount) {
@@ -1771,13 +1828,13 @@ function updateUnreadCounts() {
   }
   
   // Update notification indicator in header
-      const notificationsBtn = document.getElementById('notifications-btn');
-      if (notificationsBtn) {
+  const notificationsBtn = document.getElementById('notifications-btn');
+  if (notificationsBtn) {
     if (allUnread.length > 0) {
       notificationsBtn.classList.add('has-notification');
     } else {
-        notificationsBtn.classList.remove('has-notification');
-      }
+      notificationsBtn.classList.remove('has-notification');
+    }
   }
 }
 
@@ -2091,7 +2148,7 @@ function showTooltip(trigger) {
   
   // Show tooltip with animation - requestAnimationFrame for smoother animation
   requestAnimationFrame(() => {
-  tooltip.classList.add('active');
+    tooltip.classList.add('active');
   });
 }
 
@@ -2191,20 +2248,31 @@ function isMouseMovingToTooltip(e, tooltip) {
 }
 
 /**
- * Show the notifications modal - PLACEHOLDER
- * Will be reimplemented with the new notification system
+ * Show the notifications modal
  */
 function showNotificationsModal() {
-  alert('Notification system is being rebuilt from scratch for better performance.');
+  const notificationsModal = document.getElementById('notifications-modal');
+  if (notificationsModal) {
+    notificationsModal.classList.add('active');
+  }
 }
 
 /**
- * Close the notifications modal - PLACEHOLDER
- * Will be reimplemented with the new notification system
+ * Close the notifications modal
  */
 function closeNotificationsModal() {
-  // Placeholder function - will be reimplemented
-  console.log('Notification system being rebuilt');
+  const notificationsModal = document.getElementById('notifications-modal');
+  if (notificationsModal) {
+    notificationsModal.classList.remove('active');
+    
+    // On mobile, also hide the detail panel if it's active
+    if (window.innerWidth <= 992) {
+      const detailPanel = document.querySelector('.notifications-detail-panel.active');
+      if (detailPanel) {
+        detailPanel.classList.remove('active');
+      }
+    }
+  }
 }
 
 /**
@@ -2217,7 +2285,8 @@ function closeAllModals() {
     searchModal.classList.remove('active');
   }
   
-  // Notifications modal closing handled by placeholder function
+  // Close notifications modal
+  closeNotificationsModal();
   
   // Close logout confirmation modal
   const logoutModal = document.getElementById('logout-modal');
@@ -3261,7 +3330,7 @@ function setupHeaderActions() {
       navigateTo('account');
     });
   }
-} 
+}
 
 /**
  * Create a forwards icon by rotating the back icon
@@ -3895,4 +3964,4 @@ function optimizeNotificationsPerformance() {
       }, 150); // 150ms delay
     });
   }
-} 
+}
